@@ -173,6 +173,7 @@ void kitchen() {
 void courier() {
     // data
     int count = 0;  // counter of sent orders
+    string textData;
 
     //
     while(true) {
@@ -180,24 +181,27 @@ void courier() {
         this_thread::sleep_for(chrono::seconds(30));
 
         // the courier picks up ready-made dishes at the delivery and delivers them to customers
+        textData = "\nThe courier picks up the following ready meals:\n";
         queueOrder_access.lock();
-        fOut_access.lock();
-        cout << "\nThe courier picks up the following ready meals:\n";
         while( !queueOnExtradition.empty() ) {
             // pick up the finished dish
             Order order = queueOnExtradition.front();
             queueOnExtradition.pop();
 
             // displaying a message about a taken ready dish
-            cout
-                    << "\tOrder id: " << order.id << endl
-                    << "\tDish: " << toDishStr(order.dish) << endl;
+            textData =
+                    "\tOrder id: " + to_string(order.id) + "\n" +
+                    "\tDish: " + toDishStr(order.dish) + "\n";
 
             // count of sent orders
             count++;
         }
-        fOut_access.unlock();
         queueOrder_access.unlock();
+
+        // displaying a message about the taken ready meals
+        fOut_access.lock();
+        cout << textData;
+        fOut_access.unlock();
 
         // terminate the work of the threads under the given condition
         if ( count >= 10 ) {
@@ -228,12 +232,9 @@ int main() {
 
     // waiting for threads to complete
     // wait for the courier thread to finish first, because it manages thread termination.
-    if( courierOrder.joinable() )
-        courierOrder.join();
-    if( queueOrder1.joinable() )
-        queueOrder1.join();
-    if( queueOrder2.joinable() )
-        queueOrder2.join();
+    courierOrder.join();
+    queueOrder1.join();
+    queueOrder2.join();
 
     // the end
     cout << "\nEnd of Program.\n";
