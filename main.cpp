@@ -138,7 +138,7 @@ void kitchen() {
                 << "\nTaking an order for execution:\n"
                 << "\tOrder id: " << order.id << endl
                 << "\tDish: " << toDishStr(order.dish) << endl
-                << "Cooking time: " << time << endl;
+                << "\tCooking time: " << time << endl;
         fOut_access.unlock();
 
         // "cooking"
@@ -182,21 +182,21 @@ void courier() {
 
         // the courier picks up ready-made dishes at the delivery and delivers them to customers
         textData = "\nThe courier picks up the following ready meals:\n";
-        queueOrder_access.lock();
+        queueOnExtradition_access.lock();
         while( !queueOnExtradition.empty() ) {
             // pick up the finished dish
             Order order = queueOnExtradition.front();
             queueOnExtradition.pop();
 
             // displaying a message about a taken ready dish
-            textData =
+            textData +=
                     "\tOrder id: " + to_string(order.id) + "\n" +
                     "\tDish: " + toDishStr(order.dish) + "\n";
 
             // count of sent orders
             count++;
         }
-        queueOrder_access.unlock();
+        queueOnExtradition_access.unlock();
 
         // displaying a message about the taken ready meals
         fOut_access.lock();
@@ -231,7 +231,6 @@ int main() {
     thread courierOrder(courier);
 
     // waiting for threads to complete
-    // wait for the courier thread to finish first, because it manages thread termination.
     courierOrder.join();
     queueOrder1.join();
     queueOrder2.join();
